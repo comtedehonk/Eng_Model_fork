@@ -9,4 +9,4 @@ c.all_faces_off() or c.all_faces_off()
 c.radio1.send(“Hello World!”) 
 import functions 
 f = functions.functions(c)
-f.all_face_data(c)
+f.all_face_data()
