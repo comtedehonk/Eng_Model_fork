@@ -105,7 +105,7 @@ class Face:
         #Initialize Thermocouple
         if "COUPLE" in senlist:
             try:
-                self.couple = adafruit_mcp9600.MCP9600(self.tca[address],address=96) 
+                self.couple = adafruit_mcp9600.MCP9600(self.tca[address],address=96,tctype="K",tcfilter=1) 
                 self.sensors['COUPLE'] = True
                 self.debug_print('[ACTIVE][Thermocouple]')
             except Exception as e:
@@ -214,6 +214,7 @@ class Face:
                     self.debug_print('[ERROR][Temperature Sensor]' + ''.join(traceback.format_exception(e)))
             else:
                 self.debug_print('[ERROR]Temperature Sensor Failure')
+                self.datalist.append(None)
                 
             self.debug_print('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~')
             #Test Light Sensor
@@ -226,6 +227,7 @@ class Face:
                     self.debug_print('[ERROR][Light Sensor]' + ''.join(traceback.format_exception(e)))
             else:
                 self.debug_print('[ERROR]Light Sensor Failure')
+                self.datalist.append(None)
                 
             self.debug_print('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~')
       
@@ -251,6 +253,7 @@ class Face:
                 self.debug_print('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~') 
             elif self.position == "z-":
                 self.debug_print('[ERROR]Thermocouple Failure')
+                self.datalist.append((None,None,None))
             else:
                 pass
 
@@ -271,10 +274,10 @@ class AllFaces:
         self.debug_print("Creating Face Objects...")
         self.BigFaceList=[]
         self.Face4 = Face(4,"z-",self.debug,self.tca)
-        self.Face3 = Face(3,"x+",self.debug,self.tca)
-        self.Face2 = Face(2,"x-",self.debug,self.tca)
-        self.Face1 = Face(1,"y+",self.debug,self.tca)
-        self.Face0 = Face(0,"y-",self.debug,self.tca)
+        self.Face3 = Face(3,"x-",self.debug,self.tca)
+        self.Face2 = Face(2,"x+",self.debug,self.tca)
+        self.Face1 = Face(1,"y-",self.debug,self.tca)
+        self.Face0 = Face(0,"y+",self.debug,self.tca)
         self.debug_print("Done!")
 
 
@@ -309,31 +312,31 @@ class AllFaces:
 
     @property #driver sequence Getter 
     def sequence(self): 
-        return self.Face1.drive,self.Face3.drive,self.Face4.drive
+        return self.Face0.drive,self.Face2.drive,self.Face4.drive
 
     @sequence.setter #setter
     def sequence(self, seq): 
-        self.Face1.drive=seq
-        self.Face3.drive=seq
+        self.Face0.drive=seq
+        self.Face2.drive=seq
         self.Face4.drive=seq
 
     def driver_actuate(self,duration):
         try:
-            self.Face1.drv_actuate(duration)
-            self.Face3.drv_actuate(duration)
+            self.Face0.drv_actuate(duration)
+            self.Face2.drv_actuate(duration)
             self.Face4.drv_actuate(duration)
         except Exception as e:
             self.debug_print('Driver Test error: ' + ''.join(traceback.format_exception(e)))
 
     def drvx_actuate(self,duration):
         try:
-            self.Face3.drv_actuate(duration)
+            self.Face2.drv_actuate(duration)
         except Exception as e:
             self.debug_print('Driver Test error: ' + ''.join(traceback.format_exception(e)))
 
     def drvy_actuate(self,duration):
         try:
-            self.Face1.drv_actuate(duration)
+            self.Face0.drv_actuate(duration)
         except Exception as e:
             self.debug_print('Driver Test error: ' + ''.join(traceback.format_exception(e)))
 
@@ -363,7 +366,7 @@ class AllFaces:
     
     
     def Get_Thermo_Data(self):
-        f1t=self.Face0.couple[1]
+        f1t=self.Face4.couple_data[1]
         return f1t
         
     def __del__(self):

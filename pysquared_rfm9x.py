@@ -9,6 +9,7 @@ See https://github.com/adafruit/Adafruit_CircuitPython_RFM9x
 CircuitPython Version: 7.0.0 alpha
 Library Repo: https://github.com/pycubed/library_pycubed.py
 * Edits by: Max Holliday
+Added temperature readout by Nicole Maggard
 """
 import time
 from random import random
@@ -54,6 +55,8 @@ _RH_RF95_REG_23_MAX_PAYLOAD_LENGTH = const(0x23)
 _RH_RF95_REG_24_HOP_PERIOD = const(0x24)
 _RH_RF95_REG_25_FIFO_RX_BYTE_ADDR = const(0x25)
 _RH_RF95_REG_26_MODEM_CONFIG3 = const(0x26)
+
+_RH_RF95_REG_3C_REGTEMP = const(0x3C)
 
 _RH_RF95_REG_40_DIO_MAPPING1 = const(0x40)
 _RH_RF95_REG_41_DIO_MAPPING2 = const(0x41)
@@ -372,7 +375,7 @@ class RFM9x:
         self.operation_mode = SLEEP_MODE
         time.sleep(0.01)
         self.long_range_mode=False # FSK/OOK Mode
-        self.modulation_type=1 # OOK
+        self.modulation_type=0 # OOK
         self.modulation_shaping = 2
         self._write_u8(0x25,0x00) # no preamble
         self._write_u8(0x26,0x00) # no preamble
@@ -412,7 +415,6 @@ class RFM9x:
             self.preamble_length  = cache[3]
             self.enable_crc       = cache[4]
             self.auto_agc = True
-            self.low_datarate_optimize = True
         return success
 
     # pylint: disable=no-member
@@ -686,6 +688,27 @@ class RFM9x:
         Incoming packets that fail the CRC check are not processed.  Set to
         False to disable CRC checking and process all incoming packets."""
         return (self._read_u8(_RH_RF95_REG_1E_MODEM_CONFIG2) & 0x04) == 0x04
+    
+    '''@property
+    def temperature(self):
+        """Tries to grab current temp from module"""
+        raw_temp=self._read_u8(_RH_RF95_REG_3C_REGTEMP)
+        temp = (raw_temp & 0x7F)
+        if (raw_temp & 0x80)  == 0x80:
+            temp=~temp+0x01
+
+        return temp+24#Added prescalar for temp'''
+    
+    @property
+    def former_temperature(self):
+        """Tries to grab former temp from module"""
+        raw_temp=self._read_u8(_RH_RF95_REG_5B_FORMER_TEMP)
+        temp = (raw_temp & 0x7F)
+        if (raw_temp & 0x80)  == 0x80:
+            temp=~temp+0x01
+
+        return temp+143#Added prescalar for temp
+    
 
     @enable_crc.setter
     def enable_crc(self, val):

@@ -297,7 +297,7 @@ class RFM9x:
         # Note no sync word is set for LoRa mode either!
         self._write_u8(_RH_RF95_REG_26_MODEM_CONFIG3, 0x00)
         # Set transmit power to 13 dBm, a safe value any module supports.
-        self.tx_power = 23
+        self.tx_power = 5
         # initialize last RSSI reading
         self.last_rssi = 0.0
         """The RSSI of the last received packet. Stored when the packet was received.

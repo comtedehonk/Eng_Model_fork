@@ -1,6 +1,6 @@
-Adafruit CircuitPython 8.0.0-rc.2-1-ge9ba31106-dirty on 2023-02-05; 3PySquared with rp2040
+Adafruit CircuitPython 8.0.0-rc.2-2-g6b3777863-dirty on 2023-05-08; 3PySquared with rp2040
 Board ID:pysquared_rp2040
-UID:E4625C5853460938
+UID:E462947803243032
 boot.py output:
 Traceback (most recent call last):
   File "boot.py", line 3, in <module>
