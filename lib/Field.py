@@ -20,8 +20,8 @@ class Field():
             self.cubesat.enable_rf.value=True
             self.cubesat.radio1.spreading_factor=8
             self.cubesat.radio1.low_datarate_optimize=False
-            self.cubesat.radio1.node=0xfb
-            self.cubesat.radio1.destination=0xfa
+            self.cubesat.radio1.node=0xfa
+            self.cubesat.radio1.destination=0xfb
             self.cubesat.radio1.receive_timeout=10
             self.cubesat.radio1.enable_crc=True
             if self.cubesat.radio1.spreading_factor>8:
