@@ -1,11 +1,8 @@
 from pysquared import cubesat as c
-import functions 
 import time
 import os
 
 
-
-f = functions.functions(c)
 def send_image(filepath):
     size = os.path.getsize(filepath)
     #password = 13
@@ -19,7 +16,7 @@ def send_image(filepath):
             data = stream.read(252)
             if not data:
                 break
-            f.send(data)
+            c.radio1.send(data)
             time.sleep(2)
 
 send_image("image.png")
