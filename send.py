@@ -1,24 +1,18 @@
 from pysquared import cubesat as c
 import time
-import os
 
 
 def send_image(filepath):
-    size = os.path.getsize(filepath)
-    #password = 13
-    packet = size.to_bytes(6, byteorder = "big")
-    packet = bytearray(packet)
-    packet[0] = 13 #password
-    packet[1] = 1 #indicator for images
-    f.send(packet)
+    count = 0
     with open(filepath, "rb") as stream:
         while True:
             data = stream.read(252)
             if not data:
                 break
             c.radio1.send(data)
+            count = count +1
             time.sleep(2)
-
+    return count
 send_image("image.png")
 
 
