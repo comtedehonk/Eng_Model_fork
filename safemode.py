@@ -1,7 +1,7 @@
 print("I am in safemode. Help!")
 import microcontroller
 import time
-from pysquared import battery_voltage
+from pysquared import battery_voltage, cubesat
 from Big_Data import Get_Thermo_Data
 try:
     time.sleep(10)
@@ -10,8 +10,8 @@ try:
     
     while True:
         voltage = battery_voltage()
-        temp = Get_Thermo_Data()
-        if(voltage > 6 & temp > -20 & temp <50):
+        temp = cubesat.IMU.mcp.temperature
+        if(voltage > cubesat.NORMAL_BATTERY_VOLTAGE & temp > -20 & temp <35):
             break
         
 
