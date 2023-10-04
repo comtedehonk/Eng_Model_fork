@@ -2,7 +2,7 @@ def dot_product(vector1, vector2):
     return sum([a*b for a,b in zip(vector1, vector2)])
 
 def x_product(vector1, vector2):
-    return [vector1[1]*vector2[2]-vector1[2]*vector2[1],vector1[0]*vector2[2]-vector1[2]*vector2[0],vector1[0]*vector2[1]-vector1[1]*vector2[0]]
+    return [vector1[1]*vector2[2]-vector1[2]*vector2[1],vector1[2]*vector2[0]-vector1[0]*vector2[2],vector1[0]*vector2[1]-vector1[1]*vector2[0]]
 
 def gain_func():
     return 1.0
