@@ -20,6 +20,7 @@ try:
     microcontroller.reset()
 
 except Exception as e:
+    print(f"The error is: {e}")
     time.sleep(10)
     microcontroller.on_next_reset(microcontroller.RunMode.NORMAL)
     microcontroller.reset()
