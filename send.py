@@ -1,23 +1,16 @@
 from pysquared import cubesat as c
 import time
+import os
 
 
 def send_image(filepath):
-    count = 0
+    size = os.stat(filepath)[6]
+    c.radio1.send(size.to_bytes(4, "big"))
     with open(filepath, "rb") as stream:
         while True:
-            data = stream.read(252)
+            data = stream.read(249)
             if not data:
                 break
             c.radio1.send(data)
-            count = count +1
-            time.sleep(2)
-    return count
-send_image("image.png")
-
-
-    
-
-
-
-
+            print('sent')
+send_image('THBBlueEarthTest.jpeg')
