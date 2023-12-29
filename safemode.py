@@ -13,8 +13,6 @@ try:
         temp = cubesat.IMU.mcp.temperature
         if(voltage > cubesat.NORMAL_BATTERY_VOLTAGE & temp > -20 & temp <35):
             break
-        
-
         time.sleep(90)
     microcontroller.on_next_reset(microcontroller.RunMode.NORMAL)
     microcontroller.reset()
