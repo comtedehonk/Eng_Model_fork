@@ -678,6 +678,7 @@ class Satellite:
             self.neopixel.brightness=0
             self.enable_rf.value = False
             self.power_mode = 'critical'
+            import safemode
 
         elif 'min' in mode:
             self.neopixel.brightness=0
