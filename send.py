@@ -25,4 +25,4 @@ while True:
     print(f'x : {accel[0]}, y : {accel[1]}, z: {accel[2]}')
     threshold = math.sqrt(math.pow(accel[0], 2)+ math.pow(accel[1], 2) + math.pow(accel[2], 2)) 
     print(threshold)
-    time.sleep(3)
+    time.sleep(1)
