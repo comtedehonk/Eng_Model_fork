@@ -1,6 +1,7 @@
 '''
 Created by Nicole Maggard and Michael Pham 8/19/2022
 Updated for Yearling by Nicole Maggard and Rachel Sarmiento 2/4/2023
+Updated for Irvington Cubesat 6/30/24
 This is where the processes get scheduled, and satellite operations are handeled
 ''' 
 from pysquared import cubesat as c
@@ -11,6 +12,9 @@ import gc #Garbage collection
 import microcontroller
 import functions
 from debugcolor import co
+import new_protocol_send
+
+
 def debug_print(statement):
     if c.debug:
         print(co("[MAIN]" + str(statement), 'blue', 'bold'))
@@ -18,11 +22,6 @@ f=functions.functions(c)
 try:
     debug_print("Boot number: " + str(c.c_boot))
     debug_print(str(gc.mem_free()) + " Bytes remaining")
-
-    #poll the battery board:
-    #f.battery_health()
-    f.beacon()
-    f.listen()
     distance1=0
     distance2=0
     tries=0
@@ -70,36 +69,19 @@ try:
         else:
             debug_print("burn failed miserably!")
             break
-        
 
-
-    f.beacon()
-    f.listen()
-    f.state_of_health()
-    f.listen()
-
-    f.beacon()
-    f.listen()
-    f.state_of_health()
-    f.listen()
 except Exception as e:
     debug_print("Error in Boot Sequence: " + ''.join(traceback.format_exception(e)))
 
+
+
 def critical_power_operations():
-    f.beacon()
-    f.listen()
-    f.state_of_health()
-    f.listen()  
-     
+    f.send_state_of_health("crit")
     f.Long_Hybernate()
 
 def minimum_power_operations():
     
-    f.beacon()
-    f.listen()
-    f.state_of_health()   
-    f.listen()
-    
+    f.send_state_of_health("min")
     f.Short_Hybernate() 
         
 def normal_power_operations():
@@ -232,14 +214,14 @@ def normal_power_operations():
     async def main_loop():
         #log_face_data_task = asyncio.create_task(l_face_data())
             
-        t1 = asyncio.create_task(s_lora_beacon())
+        t1 = asyncio.create_task(new_protocol_send.send(c))
         t2 = asyncio.create_task(s_face_data())
         t3 = asyncio.create_task(s_imu_data())
         t4 = asyncio.create_task(g_face_data())
         t5 = asyncio.create_task(detumble())
-        t6 = asyncio.create_task(joke())
+        #t6 = asyncio.create_task(joke())
         
-        await asyncio.gather(t1,t2,t3,t4,t5,t6)
+        await asyncio.gather(t2,t3,t4,t5)
         
     asyncio.run(main_loop())
 
