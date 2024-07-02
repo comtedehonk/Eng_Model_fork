@@ -422,7 +422,9 @@ class functions:
                     data[0]=tuple(data[0])
                     dipole=detumble.magnetorquer_dipole(data[1],data[0])
                     self.debug_print("Dipole: " + str(dipole))
-                    self.send("Detumbling! Gyro, Mag: " + str(data))
+                    packet = Packet.make_handshake1(data)
+                    asyncio.run(self.cubesat.ptp.send_packet(packet))
+                    #self.send("Detumbling! Gyro, Mag: " + str(data))
                     time.sleep(1)
                     actuate(dipole,dur)
             except Exception as e:

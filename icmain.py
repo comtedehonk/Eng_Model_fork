@@ -85,14 +85,13 @@ def minimum_power_operations():
     f.Short_Hybernate() 
         
 def normal_power_operations():
-    
     debug_print("Entering Norm Operations")
     FaceData=[]
     #Defining L1 Tasks
     def check_power():
         gc.collect()
         #f.battery_health()
-        f.battery_heater()
+        #f.battery_heater() uncomment later
         c.check_reboot()
         #f.battery_health() #Second check to make sure we have enough power to continue
         
@@ -107,9 +106,10 @@ def normal_power_operations():
 
         debug_print(c.power_mode)
         gc.collect()
-        return pwr
+        return True #pwr
     
     async def send_beacon():
+        print('sending beacon')
         while check_power(): 
             state_payload = f.create_state_packet()
             t_payload = f.get_imu_data() #imu data
@@ -119,7 +119,7 @@ def normal_power_operations():
 
             await asyncio.sleep(20)
 
-    async def s_lora_beacon():
+    '''async def s_lora_beacon():
         
         while check_power():
             f.beacon()
@@ -128,7 +128,7 @@ def normal_power_operations():
             f.listen()   
             time.sleep(1) # Guard Time
             
-            await asyncio.sleep(30)
+            await asyncio.sleep(30)'''
 
     async def g_face_data():
         
@@ -228,9 +228,8 @@ def normal_power_operations():
         t3 = asyncio.create_task(s_imu_data())
         t4 = asyncio.create_task(g_face_data())
         t5 = asyncio.create_task(detumble())
-        #t6 = asyncio.create_task(joke())
         
-        await asyncio.gather(t2,t3,t4,t5)
+        await asyncio.gather(t1,t2,t3,t4,t5)
         
     asyncio.run(main_loop())
 

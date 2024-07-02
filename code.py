@@ -9,7 +9,8 @@ import time
 import microcontroller
 
 try:
-    import main
+    print('starting main')
+    import icmain
 
 except Exception as e:    
     print(e)
