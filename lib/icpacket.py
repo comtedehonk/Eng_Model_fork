@@ -53,8 +53,8 @@ class Packet:
 		return Packet(Packet.cmd_packet, None, None, ["#IRVCB", payload])
 	
 	@staticmethod
-	def make_handshake2():
-		return Packet(Packet.cmd_packet, None, None, ["#IRVCBH2", -1])
+	def make_handshake2(payload):
+		return Packet(Packet.cmd_packet, None, None, ["#IRVCBH2", payload])
 	
 	@staticmethod
 	def make_handshake3(image_count):
@@ -63,12 +63,12 @@ class Packet:
 	@staticmethod
 	def make_file_req(file_id, packets=None):
 		req_body = "all" if packets is None else packets
-		return Packet(Packet.cmd_packet, None, file_id, ["req", req_body])
+		return Packet(Packet.cmd_packet, None, ["req", req_body])
 	
 	@staticmethod
-	def make_file_len(payload_id, packet_count):
-		return Packet(Packet.cmd_packet, None, payload_id, -packet_count)
+	def make_file_len(packet_count):
+		return Packet(Packet.cmd_packet, None, packet_count)
 	
 	@staticmethod
-	def make_file_data(sequence_num, payload_id, chunk):
-		return Packet(Packet.data_packet, sequence_num, payload_id, chunk)
+	def make_file_data(sequence_num, chunk):
+		return Packet(Packet.data_packet, sequence_num, chunk)

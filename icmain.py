@@ -1,7 +1,7 @@
 '''
 Created by Nicole Maggard and Michael Pham 8/19/2022
 Updated for Yearling by Nicole Maggard and Rachel Sarmiento 2/4/2023
-Updated for Irvington Cubesat 6/30/24
+Updated by Irvington Cubesat Member Shreya Kolla 6/30/24
 This is where the processes get scheduled, and satellite operations are handeled
 ''' 
 from pysquared import cubesat as c
@@ -107,17 +107,7 @@ def normal_power_operations():
         debug_print(c.power_mode)
         gc.collect()
         return True #pwr
-    
-    async def send_beacon():
-        print('sending beacon')
-        while check_power(): 
-            state_payload = f.create_state_packet()
-            t_payload = f.get_imu_data() #imu data
-            t_payload[0:0] = state_payload
-            new_protocol_send.send(c, t_payload)
-            time.sleep(1)
-
-            await asyncio.sleep(20)
+ 
 
     '''async def s_lora_beacon():
         
@@ -223,7 +213,7 @@ def normal_power_operations():
     
     async def main_loop():
         #log_face_data_task = asyncio.create_task(l_face_data())    
-        t1 = asyncio.create_task(send_beacon())
+        t1 = asyncio.create_task(new_protocol_send.send(c,f))
         t2 = asyncio.create_task(s_face_data())
         t3 = asyncio.create_task(s_imu_data())
         t4 = asyncio.create_task(g_face_data())

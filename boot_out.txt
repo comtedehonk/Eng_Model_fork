@@ -1,6 +1,6 @@
 Adafruit CircuitPython 9.0.0-alpha.6-4-g7b9a79d3d8 on 2024-04-02; Flight Computer Board with rp2040
 Board ID:pysquared_flight_computer_v1a
-UID:E4638C729F194B27
+UID:E463284887450C23
 boot.py output:
 Traceback (most recent call last):
   File "boot.py", line 2, in <module>

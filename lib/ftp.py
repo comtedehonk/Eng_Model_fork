@@ -230,7 +230,7 @@ class FileTransferProtocol:
 					fh.write(chunk)
 		os.remove('tmpfile')
 	
-	async def send_partial_file(self, filename, file_id, request):
+	async def send_partial_file(self, filename, request):
 		with open(filename, "rb") as f:
 			for packet_num in request:
 				if self.packet_delay > 0:
@@ -238,14 +238,14 @@ class FileTransferProtocol:
 				print(f"Sending packet {packet_num+1}")
 				f.seek(self.chunk_size * packet_num)
 				chunk = f.read(self.chunk_size)
-				packet = Packet.make_file_data(packet_num, file_id, chunk)
+				packet = Packet.make_file_data(packet_num, chunk)
 				success = await self.ptp.send_packet(packet)
 				if not success:
 					print(f"Failed to send packet {packet_num+1}")
 				else:
 					print(f"Packet {packet_num+1} sent")
 	
-	async def send_file(self, filename, file_id):
+	async def send_file(self, filename):
 		"""Send a file
 
 		Args:
@@ -257,9 +257,9 @@ class FileTransferProtocol:
 			filesize = stats[6]
 			
 			# send the number of packets for the client
-			print("Sending packet count and file ID")
+			print("Sending packet count")
 			packet_count = math.ceil(filesize / self.chunk_size)
-			packet = Packet.make_file_len(file_id, packet_count)
+			packet = Packet.make_file_len(packet_count)
 			await self.ptp.send_packet(packet)
 			# await self.ptp.send_packet(
 				# self.ptp.data_packet,
@@ -278,7 +278,7 @@ class FileTransferProtocol:
 					# sequence_num=packet_num,
 					# payload_id=file_id
 				# )
-				packet = Packet.make_file_data(packet_num, file_id, chunk)
+				packet = Packet.make_file_data(packet_num, chunk)
 				success = await self.ptp.send_packet(packet)
 				if not success:
 					print(f"Failed to send packet {packet_num+1}")
