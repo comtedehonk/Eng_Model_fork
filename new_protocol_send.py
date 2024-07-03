@@ -41,6 +41,8 @@ def save_settings(new_settings,cubesat):
 			new_settings.write(f'camera_settings = {json.dumps(new_settings, indent=4)}')
 		for k in old_keys:
    			setattr(cubesat.cam, k, camera_settings[k])
+	else:
+		print("received dictionary was corrupted")
 
 
 async def capture(cubesat):
