@@ -43,8 +43,8 @@ def save_settings(new_settings,cubesat):
    			setattr(cubesat.cam, k, camera_settings[k])
 
 
-async capture(cubesat):
-	pass
+async def capture(cubesat):
+	pass #returns path of best image
 
 
 async def send(cubesat, functions):
@@ -71,8 +71,8 @@ async def send(cubesat, functions):
 			
 			#creating telemetry payload
 			state_payload = functions.create_state_packet()
-            t_payload = functions.get_imu_data() #imu data
-            t_payload[0:0] = state_payload #combining state and imu data
+			t_payload = functions.get_imu_data() #imu data
+			t_payload[0:0] = state_payload #combining state and imu data
 
 			packet = Packet.make_handshake1(t_payload)
 			await cubesat.ptp.send_packet(packet)
