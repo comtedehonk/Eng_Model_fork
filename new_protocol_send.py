@@ -12,7 +12,7 @@ import json
 
 import radio_diagnostics
 from icpacket import Packet
-from ftp import FileTransferProtocol as FTP
+
 
 import camera_settings
 
@@ -63,8 +63,6 @@ async def send(cubesat, functions):
 	CHUNK_SIZE = MAX_PAYLOAD_SIZE - 2 # 243
 	TEST_IMAGE_PATH = "THBBlueEarthTest.jpeg"
 	
-	ftp = FTP(cubesat.ptp, chunk_size=CHUNK_SIZE, packet_delay=0, log=False)
-	
 	radio_diagnostics.report_diagnostics(cubesat.radio1)
 	
 	while True:
@@ -80,7 +78,7 @@ async def send(cubesat, functions):
 			await cubesat.ptp.send_packet(packet)
 			packet = await cubesat.ptp.receive_packet()
 			
-			if not verify_packet(packet, "handshake2"):
+			if not verify_packet(packet, "handshake2"): #add partial request
 				await asyncio.sleep(30)
 				continue
 				

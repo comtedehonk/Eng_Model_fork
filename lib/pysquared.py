@@ -19,6 +19,8 @@ import digitalio
 from debugcolor import co
 import gc
 from ptp import AsyncPacketTransferProtocol as APTP
+from ftp import FileTransferProtocol as FTP
+
 
 
 gc.enable()
@@ -240,9 +242,13 @@ class Satellite:
             self.hardware['Radio1'] = True
         except Exception as e:
             self.debug_print('[ERROR][RADIO 1]' + ''.join(traceback.format_exception(e)))
-
+        
         #initialize ptp
-        self.ptp = APTP(self.radio1, packet_size=245, timeout=13.7, log=False)
+        try:
+            self.ptp = APTP(self.radio1, packet_size=245, timeout=13.7, log=False)
+            self.ftp = FTP(cubesat.ptp, chunk_size =243, packet_delay=0, log=False )
+        except Exception as e:
+            print(e)
         
         # Initialize OV5640 self.camera
         try:
