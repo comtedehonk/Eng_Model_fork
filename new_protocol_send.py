@@ -90,7 +90,7 @@ async def send(cubesat, functions):
 				
 			image_path = await capture(cubesat)
 
-			await ftp.send_file(image_path)
+			await cubesat.ftp.send_file(image_path)
 
 			while True:
 				print("Listening for requests")
@@ -103,9 +103,9 @@ async def send(cubesat, functions):
 				
 				if request == "all":
 					# to do: send time taken
-					await ftp.send_file(image_path)
+					await cubesat.ftp.send_file(image_path)
 				else:
-					await ftp.send_partial_file(image_path, request)
+					await cubesat.ftp.send_partial_file(image_path, request)
 			
 			asyncio.sleep(1)
 
