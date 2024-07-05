@@ -19,7 +19,7 @@ import digitalio
 from debugcolor import co
 import gc
 from ptp import AsyncPacketTransferProtocol as APTP
-from ftp import FileTransferProtocol as FTP
+# from ftp import FileTransferProtocol as FTP
 
 
 
@@ -246,7 +246,7 @@ class Satellite:
         #initialize ptp
         try:
             self.ptp = APTP(self.radio1, packet_size=245, timeout=13.7, log=False)
-            self.ftp = FTP(cubesat.ptp, chunk_size =243, packet_delay=0, log=False )
+            # self.ftp = FTP(self.ptp, chunk_size =243, packet_delay=0, log=False )
         except Exception as e:
             print(e)
         
