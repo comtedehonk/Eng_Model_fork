@@ -37,7 +37,6 @@ def save_settings(new_settings,cubesat):
 	if old_keys == new_keys:
 		camera_settings = new_settings
 		with open("camera_settings.py", 'w') as new_settings:
-			new_settings.write("import adafruit_ov5640\n")
 			new_settings.write(f'camera_settings = {json.dumps(new_settings, indent=4)}')
 		for k in old_keys:
    			setattr(cubesat.cam, k, camera_settings[k])

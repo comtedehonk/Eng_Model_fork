@@ -7,10 +7,10 @@ Library Repo:
 * Author(s): Nicole Maggard, Michael Pham, and Rachel Sarmiento
 """
 
-height=640
-width=480
-quality=54
-buf=bytearray(height*width//quality)
+#height=640
+#width=480
+#quality=54
+#buf=bytearray(height*width//quality)
 
 # Common CircuitPython Libs
 import board, microcontroller
@@ -54,7 +54,7 @@ _ICHRG    = const(11)
 _DIST     = const(13)
 _FLAG     = const(16)
 
-SEND_BUFF=bytearray(252)
+#SEND_BUFF=bytearray(252)
 
 class Satellite:
     # General NVM counters
@@ -95,15 +95,17 @@ class Satellite:
         self.NORMAL_CHARGE_CURRENT=0.5
         self.NORMAL_BATTERY_VOLTAGE=6.9#6.9
         self.CRITICAL_BATTERY_VOLTAGE=6.6#6.6
-        self.buf=memoryview(buf)
+        #self.buf=memoryview(buf)
         self.data_cache={}
         self.filenumbers={}
         self.image_packets=0
         self.urate = 115200
         self.vlowbatt=6.0
-        self.send_buff = memoryview(SEND_BUFF)
+        #self.send_buff = memoryview(SEND_BUFF)
         self.micro=microcontroller
         self.radio_cfg = {
+                        'id':   0xfa,
+                        'gs':   0xfb,
                         'id':   0xfa,
                         'gs':   0xfb,
                         'freq': 437.4,
@@ -246,7 +248,7 @@ class Satellite:
         #initialize ptp
         try:
             self.ptp = APTP(self.radio1, packet_size=245, timeout=13.7, log=False)
-            self.ftp = FTP(self.ptp, chunk_size=243, packet_delay=0, log=False)
+            self.ftp = FTP(self.ptp, chunk_size =243, packet_delay=0, log=False )
         except Exception as e:
             print(e)
         
@@ -382,40 +384,6 @@ class Satellite:
         if self.UPTIME>86400:
             self.reset_vbus()
 
-    def _find_eoi(self, buffer):
-        # Manually search for the EOI marker within the buffer
-        # This avoids converting the memoryview to bytes, which would allocate more memory
-        eoi = b'\xff\xd9'  # JPEG EOI marker
-        for i in range(len(buffer) - 1):
-            if buffer[i:i+2] == eoi:
-                return i + 2  # Return the position just after the EOI marker
-        return -1  # Return -1 if the EOI marker is not found
-    def take_picture(self,quality=22):
-        try:
-            self.cam.quality=quality
-            gc.collect()
-            self.debug_print("memory before picture: {}".format(gc.mem_free()))
-            self.debug_print("taking picture...")
-            self.cam.capture(self.buf)
-            self.debug_print("picture taken")
-            self.debug_print(self.buf)
-            self.debug_print("memory after picture: {}".format(gc.mem_free()))
-            # Find the EOI manually
-            eoi_index = self._find_eoi(self.buf)
-            if eoi_index >= 0:
-                self.debug_print("EOI found at index {}".format(eoi_index))
-                # Process the image up to the EOI marker
-                # Use .hex() on the slice up to the EOI marker
-                print(self.buf[:eoi_index].hex())
-                return True
-            else:
-                self.debug_print("EOI not found, image might be corrupted")
-                return False
-        except Exception as e:
-            self.debug_print("error! " + str(e))
-            gc.collect()
-            return False
-            
 
 print("Initializing CubeSat")
 cubesat = Satellite()
