@@ -104,8 +104,8 @@ class Satellite:
         self.send_buff = memoryview(SEND_BUFF)
         self.micro=microcontroller
         self.radio_cfg = {
-                        'id':   0xfb,
-                        'gs':   0xfa,
+                        'id':   0xfa,
+                        'gs':   0xfb,
                         'freq': 437.4,
                         'sf':   8,
                         'bw':   125,
