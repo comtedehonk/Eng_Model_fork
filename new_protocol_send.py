@@ -1,19 +1,18 @@
 '''Created by Irvington Cubesat members Jerry Sun and Shreya Kolla'''
-from pysquared import cubesat
+# from pysquared import cubesat
 # from functions import functions as f
-import board
-import busio
-import digitalio
-import traceback
+# import board
+# import busio
+# import digitalio
+from traceback import format_exception
 
 # import time
-import os
-import asyncio
-import json
+from os import listdir, remove
+from asyncio import sleep
+from json import dumps
 
-import radio_diagnostics
+from radio_diagnostics import report_diagnostics
 from icpacket import Packet
-from ftp import FileTransferProtocol as FTP
 
 import camera_settings as cset
 
@@ -30,11 +29,16 @@ def verify_packet(packet, desired_type):
 		return False
 
 def save_settings(new_settings, camera_settings, cubesat):
+	# old_keys = camera_settings.keys()
+	# old_keys.sort()
+	# new_keys = new_settings.keys()
+	# new_keys.sort()
 	if set(new_settings) == set(camera_settings): # same keys
 		camera_settings = new_settings
 		with open("camera_settings.py", 'w') as new_settings:
-			new_settings.write(f'camera_settings = {json.dumps(new_settings, indent=4)}')
-		for k in camera_settings.keys():
+			new_settings.write("import adafruit_ov5640\n")
+			new_settings.write(f'camera_settings = {dumps(new_settings, indent=4)}')
+		for k in old_keys:
    			setattr(cubesat.cam, k, camera_settings[k])
 	else:
 		print("received dictionary was corrupted")
@@ -57,14 +61,12 @@ async def send(cubesat, functions):
 	# msgpack adds 2 bytes overhead for bytes payloads
 	CHUNK_SIZE = MAX_PAYLOAD_SIZE - 2 # 243
 	TEST_IMAGE_PATH = "THBBlueEarthTest.jpeg"
-	IMAGE_DIRECTORY = "test_images" # Change when the camera code is done
+	IMAGE_DIRECTORY = "images-to-send" # Change when the camera code is done
 	IMAGE_COUNT_FILE = "image_count.txt" # Placeholder
-	
-	ftp = FTP(cubesat.ptp, chunk_size=CHUNK_SIZE, packet_delay=0, log=False)
 	
 	camera_settings = cset.camera_settings
 
-	radio_diagnostics.report_diagnostics(cubesat.radio1)
+	report_diagnostics(cubesat.radio1)
 	
 	while True:
 		try:
@@ -72,16 +74,15 @@ async def send(cubesat, functions):
 			
 			#creating telemetry payload
 			t_payload = ["TEST", "TELEMETRY", "PAYLOAD"]
-			# state_payload = functions.create_state_packet()
-			# t_payload = functions.get_imu_data() #imu data
-			# t_payload[0:0] = state_payload #combining state and imu data
+			# t_payload = functions.create_state_packet()
+			# t_payload.extend(functions.get_imu_data())
 
 			packet = Packet.make_handshake1(t_payload)
 			await cubesat.ptp.send_packet(packet)
 			packet = await cubesat.ptp.receive_packet()
 			
 			if not verify_packet(packet, "handshake2"):
-				await asyncio.sleep(30)
+				await sleep(10)
 				continue
 				
 			print("Handshake 2 received, sending handshake 3")
@@ -100,12 +101,11 @@ async def send(cubesat, functions):
 			
 			# Get number of images taken
 			try:
-				print(f"Note: make the camera code track image count in {IMAGE_COUNT_FILE}")
 				with open(IMAGE_COUNT_FILE) as f:
 					image_count = int(f.readline()) # one line with the image count
 			except:
 				print(f"Couldn't find {IMAGE_COUNT_FILE}, defaulting to 0")
-				# image_count = len(os.listdir(IMAGE_DIRECTORY))
+				# image_count = len(listdir(IMAGE_DIRECTORY))
 				image_count = 0
 			
 			packet = Packet.make_handshake3(image_count)
@@ -122,33 +122,30 @@ async def send(cubesat, functions):
 					if verify_packet(packet, "file_del"):
 						image_id = packet.payload_id
 						try:
-							# os.remove(f"{IMAGE_DIRECTORY}/image_{image_id}.jpeg")
-							# print(f"Removed image with id: {image_id}")
-							print(f"Would remove image with id: {image_id}, but testing")
+							remove(f"{IMAGE_DIRECTORY}/image{image_id}.jpeg")
+							print(f"Removed image with id: {image_id}")
+							# print(f"Would remove image with id: {image_id}, but testing")
 						except:
 							print(f"No image with id: {image_id} to be removed")
+						continue
 					else:
-						asyncio.sleep(1)
+						await sleep(1)
 						break
 				
 				# Get image with corresponding ID
 				image_id = packet.payload_id
-				image_path = f"{IMAGE_DIRECTORY}/image_{image_id}.jpeg" # PLACEHOLDER
+				image_path = f"{IMAGE_DIRECTORY}/image{image_id}.jpeg" # PLACEHOLDER
 				
 				request = packet.payload[1]
 				print(f"Request received for image {image_id}, {request}")
 				
 				if request == "all":
 					# to do: send time taken
-					await ftp.send_file(image_path, image_id)
+					await cubesat.ftp.send_file(image_path, image_id)
 				else:
-					await ftp.send_partial_file(image_path, image_id, request)
+					await cubesat.ftp.send_partial_file(image_path, image_id, request)
 			
-			asyncio.sleep(1)
+			await sleep(1)
 
 		except Exception as e:
-			print("Error in Main Loop:", ''.join(traceback.format_exception(e)))
-
-async def main():
-	# functions = f(cubesat)
-	await send(cubesat, None)
+			print("Error in Main Loop:", ''.join(format_exception(e)))
