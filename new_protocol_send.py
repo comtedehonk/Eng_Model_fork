@@ -36,9 +36,14 @@ def save_settings(new_settings, camera_settings, cubesat):
 	if set(new_settings) == set(camera_settings): # same keys
 		camera_settings = new_settings
 		with open("camera_settings.py", 'w') as new_settings:
+<<<<<<< HEAD
 			new_settings.write("import adafruit_ov5640\n")
 			new_settings.write(f'camera_settings = {dumps(new_settings, indent=4)}')
 		for k in old_keys:
+=======
+			new_settings.write(f'camera_settings = {dumps(new_settings, indent=4)}')
+		for k in camera_settings:
+>>>>>>> f485804 (updated sending protocol)
    			setattr(cubesat.cam, k, camera_settings[k])
 	else:
 		print("received dictionary was corrupted")
