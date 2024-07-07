@@ -215,11 +215,11 @@ def normal_power_operations():
         #log_face_data_task = asyncio.create_task(l_face_data())    
         t1 = asyncio.create_task(new_protocol_send.send(c,f))
         t2 = asyncio.create_task(s_face_data())
-        t3 = asyncio.create_task(s_imu_data())
-        t4 = asyncio.create_task(g_face_data())
+        # t3 = asyncio.create_task(s_imu_data())
+        # t4 = asyncio.create_task(g_face_data())
         t5 = asyncio.create_task(detumble())
         
-        await asyncio.gather(t1,t2,t3,t4,t5)
+        await asyncio.gather(t1,t2,t5)
         
     asyncio.run(main_loop())
 
@@ -247,8 +247,8 @@ try:
             c.RGB=(0,255,0)
             normal_power_operations()
             
-        else:
-            f.listen()
+        # else:
+            # f.listen()
 except Exception as e:
     debug_print("Error in Main Loop: " + ''.join(traceback.format_exception(e)))
     time.sleep(10)
