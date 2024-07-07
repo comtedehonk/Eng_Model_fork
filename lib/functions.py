@@ -36,7 +36,7 @@ class functions:
         self.debug_print("Initializing Functionalities")
         self.Errorcount=0
         self.facestring=[]
-        self.jokes=["Hey Its pretty cold up here, did someone forget to pay the electric bill?"]
+        self.jokes=[]
         self.last_battery_temp = 20
         self.callsign="KO6BJS"
         self.face_id=0x00AA
@@ -55,62 +55,7 @@ class functions:
 
     '''
     Radio Functions
-    '''  
-    def send(self,msg):
-        """Calls the RFM9x to send a message. Currently only sends with default settings.
-        
-        Args:
-            msg (String,Byte Array): Pass the String or Byte Array to be sent. 
-        """
-        import Field
-        self.field = Field.Field(self.cubesat,self.debug)
-        message=f"{self.callsign} " + str(msg) + f" {self.callsign}"
-        self.field.Beacon(message)
-        if self.cubesat.f_fsk:
-            self.cubesat.radio1.cw(message)
-        if self.cubesat.is_licensed:
-            self.debug_print(f"Sent Packet: " + message)
-        else:
-            self.debug_print("Failed to send packet")
-        del self.field
-        del Field
-        gc.collect()
-
-
-    def beacon(self):
-        """Calls the RFM9x to send a beacon. """
-        import Field
-        try:
-            lora_beacon = f"{self.callsign} Hello I am Yearling^2! I am in: " + str(self.cubesat.power_mode) +" power mode. V_Batt = " + str(self.cubesat.battery_voltage) + f"V. IHBPFJASTMNE! {self.callsign}"
-        except Exception as e:
-            self.debug_print("Error with obtaining power data: " + ''.join(traceback.format_exception(e)))
-            lora_beacon = f"{self.callsign} Hello I am Yearling^2! I am in: " + "an unidentified" +" power mode. V_Batt = " + "Unknown" + f". IHBPFJASTMNE! {self.callsign}"
-
-        self.field = Field.Field(self.cubesat,self.debug)
-        self.field.Beacon(lora_beacon)
-        if self.cubesat.f_fsk:
-            self.cubesat.radio1.cw(lora_beacon)
-        del self.field
-        del Field
-    
-    def send_picture(self):
-        try:
-            taken = self.cubesat.take_picture(54)
-            if taken:
-                self.send("0/" + str(ceil(len(self.cubesat.buf) / 100)) + str(self.cubesat.buf[0:100].hex()))
-                for _ in range(100,len(self.cubesat.buf),100):
-                    self.send(str(ceil(_ / 100))+ "/" + str(ceil(len(self.cubesat.buf) / 100)) + " " + str(self.cubesat.buf[_:_+100].hex()))
-                    time.sleep(0.1)
-            else:
-                self.debug_print("Picture failed to capture.")
-        except Exception as e:
-            self.debug_print("Error sending picture: " + ''.join(traceback.format_exception(e)))
-
-    def joke(self):
-        self.send(random.choice(self.jokes))
-    
-
-    
+    '''     
     def create_state_packet(self):
         try:
             return [
@@ -171,43 +116,6 @@ class functions:
         del self.field
         del Field
     
-    def listen(self):
-        import cdh
-        #This just passes the message through. Maybe add more functionality later. 
-        try:
-            self.debug_print("Listening")
-            self.cubesat.radio1.receive_timeout=10
-            received = self.cubesat.radio1.receive(keep_listening=True)
-        except Exception as e:
-            self.debug_print("An Error has occured while listening: " + ''.join(traceback.format_exception(e)))
-            received=None
-
-        try:
-            if received is not None:
-                self.debug_print("Recieved Packet: "+str(received))
-                cdh.message_handler(self.cubesat,received)
-                return True
-        except Exception as e:
-            self.debug_print("An Error has occured while handling command: " + ''.join(traceback.format_exception(e)))
-        finally:
-            del cdh
-        
-        return False
-    
-    def listen_joke(self):
-        try:
-            self.debug_print("Listening")
-            self.cubesat.radio1.receive_timeout=10
-            received = self.cubesat.radio1.receive(keep_listening=True)
-            if received is not None and "HAHAHAHAHA!" in received:
-                return True
-            else:
-                return False
-        except Exception as e:
-            self.debug_print("An Error has occured while listening: " + ''.join(traceback.format_exception(e)))
-            received=None
-            return False
-    
     def all_face_data(self):
         
         #create method to check all faces are on (can do by polling battery board or by polling faces or both)
@@ -219,6 +127,7 @@ class functions:
             
             del a
             del Big_Data
+            gc.collect()
         except Exception as e:
             self.debug_print("Big_Data error" + ''.join(traceback.format_exception(e)))
         
