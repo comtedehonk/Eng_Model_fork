@@ -255,7 +255,7 @@ class Satellite:
         # Initialize OV5640 self.camera
         try:
             self.cam = adafruit_ov5640.OV5640(
-                self.i2c0,
+                self.tca[5],
                 data_pins=(
                     board.D2,
                     board.D3,
