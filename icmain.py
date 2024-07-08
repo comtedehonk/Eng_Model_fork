@@ -19,6 +19,7 @@ def debug_print(statement):
     if c.debug:
         print(co("[MAIN]" + str(statement), 'blue', 'bold'))
 f=functions.functions(c)
+print(gc.mem_free())
 try:
     debug_print("Boot number: " + str(c.c_boot))
     debug_print(str(gc.mem_free()) + " Bytes remaining")
@@ -153,6 +154,7 @@ def normal_power_operations():
                 debug_print('Outta time! ' + ''.join(traceback.format_exception(e)))
             
             gc.collect()
+            print(gc.mem_free())
             
             await asyncio.sleep(200)
 
@@ -192,6 +194,7 @@ def normal_power_operations():
                 debug_print(f'Outta time!' + ''.join(traceback.format_exception(e)))
                 
             gc.collect()
+            print(gc.mem_free())
             
             await asyncio.sleep(300)
 
@@ -214,6 +217,7 @@ def normal_power_operations():
     async def main_loop():
         #log_face_data_task = asyncio.create_task(l_face_data())    
         t1 = asyncio.create_task(new_protocol_send.send(c,f))
+        
         t2 = asyncio.create_task(s_face_data())
         # t3 = asyncio.create_task(s_imu_data())
         # t4 = asyncio.create_task(g_face_data())

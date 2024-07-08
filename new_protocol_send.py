@@ -7,9 +7,10 @@
 from traceback import format_exception
 
 # import time
-from os import listdir, remove
+from os import listdir, remove, stat, mkdir, getcwd, rmdir, rename
 from asyncio import sleep
 from json import dumps
+from gc import mem_free, collect
 
 from radio_diagnostics import report_diagnostics
 from icpacket import Packet
@@ -28,7 +29,7 @@ def verify_packet(packet, desired_type):
 		print(f"Packet is of undesired type {packet.categorize()}, not {desired_type}")
 		return False
 
-def save_settings(new_settings, camera_settings, cubesat):
+async def save_settings(new_settings, camera_settings, cubesat):
 	# old_keys = camera_settings.keys()
 	# old_keys.sort()
 	# new_keys = new_settings.keys()
@@ -36,16 +37,90 @@ def save_settings(new_settings, camera_settings, cubesat):
 	if set(new_settings) == set(camera_settings): # same keys
 		camera_settings = new_settings
 		with open("camera_settings.py", 'w') as new_settings:
-			new_settings.write(f'camera_settings = {dumps(new_settings, indent=4)}')
+			new_settings.write(f'camera_settings = {dumps(new_settings)}')
 		for k in camera_settings:
    			setattr(cubesat.cam, k, camera_settings[k])
 	else:
 		print("received dictionary was corrupted")
 
 
-async def capture(cubesat):
-	pass #returns path of best image
+def captureSingle(cam, buf, folder, name):
+    print("ok: capturing test photo")
+    try:
+        cam.capture(buf)
+    except Exception as e:
+        print("error:", e)
+        return
+    print(f"ok: saving test photo to images/{folder}/{name}.jpeg")
+    eoi = buf.find(
+        b"\xff\xd9"
+    )  # this can false positive, parse the jpeg for better results
+    # print("ok: eoi marker (possibly inaccurate):", eoi)
+    if eoi == -1:
+        print("warn: IMAGE IS PROBABLY TRUNCATED")
+    print(memoryview(buf).hex())
+    #print(memoryview(buf)[: eoi + 2].hex())
+    try:
+        mkdir("images")
+    except:
+        print("Image Folder Exists")
+    try:
+        mkdir(f"images/{folder}")
+    except:
+        print(f"Folder {folder} Exists")
+    # print(buf)
+    with open(f"images/{folder}/{name}.jpeg", "wb") as photo_file:
+        photo_file.write(buf[: eoi + 2])
+        
+    print("ok: done saving,")
+    buf = bytearray(cam.buffer_size)
+    
 
+def sortThroughDir(dir):
+    # Maps through dir to return sorted list of touples of name and file size
+    l = sorted(
+        list(
+            map(
+                lambda f: (
+                    f,
+                    stat(getcwd() + "/" + dir + "/" + f)[6],
+                ),
+                listdir(dir),
+            )
+        ),
+        key=lambda x: x[1]
+    )
+    l.reverse()
+    return l
+
+async def capture(cubesat, cset):
+	'''with open("image_count.txt", 'r') as f:
+		try:
+			out = f.read()
+			print(out)
+			count = int(out) + 1
+		except:
+			count = 0
+	with open("image_count.txt", 'w') as f:
+		f.write(str(count))'''
+  
+	print(mem_free())
+	collect()
+	buf = bytearray(cset["buffer_size"])
+	print(mem_free())
+	count = 3
+
+	for i in range(0, 10):
+		captureSingle(cubesat.cam, buf, f"burst{count}",  f"image{i}")
+	folder = f"images/burst{count}"
+	file = f"{folder}/{sortThroughDir(folder)[0][0]}"
+	print(file)
+	print(sortThroughDir(folder)[0][0])
+	rename(file, f"images-to-send/image{count}.jpeg")
+ 
+	for i in listdir(folder):
+		remove(f"{folder}/{i}")
+	rmdir(f"{folder}")
 
 async def send(cubesat, functions):
 	print("Irvington CubeSat's Test Satellite Board")
@@ -81,14 +156,15 @@ async def send(cubesat, functions):
 			packet = await cubesat.ptp.receive_packet()
 			
 			if not verify_packet(packet, "handshake2"):
-				await sleep(10)
+				print(mem_free())
+				await sleep(15)
 				continue
 				
 			print("Handshake 2 received, sending handshake 3")
 			
 			# writing new camera settings
 			if (packet.payload[1] is not None) and isinstance(packet.payload[1], dict):
-				save_settings(packet.payload[1], camera_settings, cubesat)
+				await save_settings(packet.payload[1], camera_settings, cubesat)
 			
 			# setting new timeout
 			if packet.payload[2] is not None:
@@ -96,7 +172,7 @@ async def send(cubesat, functions):
 			
 			# if requested, take picture
 			if packet.payload[3]:
-				image_path = await capture(cubesat)
+				image_path = await capture(cubesat,camera_settings)
 			
 			# Get number of images taken
 			try:

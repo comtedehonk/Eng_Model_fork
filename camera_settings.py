@@ -1,13 +1,11 @@
-import adafruit_ov5640
-
 camera_settings = {
     "effect": 0,
     "exposure_value": -3,
     "white_balance": 0,
-    "size": adafruit_ov5640.OV5640_SIZE_VGA,
-    "buffer_size": 480*640//20,
+    "size": 5,
+    "buffer_size": 3840,
     "brightness": 0,
-    "contrast": 0,
+    "contrast": 1,
     "saturation": 0,
     "sharpness": 0,
     "flip_x": False,

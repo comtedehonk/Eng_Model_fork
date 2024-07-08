@@ -202,14 +202,14 @@ class Satellite:
 
         # Initialize PCT2075 Temperature Sensor
         try:
-            self.pct = adafruit_pct2075.PCT2075(self.i2c0, address=0x4F)
+            self.pct = adafruit_pct2075.PCT2075(self.i2c1, address=0x4F)
             self.hardware['TEMP'] = True
         except Exception as e:
             self.debug_print('[ERROR][TEMP SENSOR]' + ''.join(traceback.format_exception(e)))
 
         # Initialize TCA
         try:
-            self.tca = adafruit_tca9548a.TCA9548A(self.i2c0,address=int(0x77))
+            self.tca = adafruit_tca9548a.TCA9548A(self.i2c1,address=int(0x77))
             for channel in range(8):
                 if self.tca[channel].try_lock():
                     self.debug_print("Channel {}:".format(channel))
@@ -220,12 +220,12 @@ class Satellite:
             self.debug_print("[ERROR][TCA]" + ''.join(traceback.format_exception(e)))
 
         # Initialize LiDAR
-        try:
+        '''try:
             self.LiDAR = adafruit_vl6180x.VL6180X(self.i2c1,offset=0)
             self.hardware['LiDAR'] = True
         except Exception as e:
             self.debug_print('[ERROR][LiDAR]' + ''.join(traceback.format_exception(e)))
-
+            '''
         # Initialize radio #1 - UHF
         try:
             self.radio1 = pysquared_rfm9x.RFM9x(self.spi0, _rf_cs1, _rf_rst1,self.radio_cfg['freq'],code_rate=8,baudrate=1320000)
@@ -255,24 +255,24 @@ class Satellite:
         # Initialize OV5640 self.camera
         try:
             self.cam = adafruit_ov5640.OV5640(
-                self.i2c1,
+                self.i2c0,
                 data_pins=(
+                    board.D2,
                     board.D3,
-                    board.D13,
-                    board.PC,
-                    board.VS,
                     board.D4,
                     board.D5,
                     board.D6,
+                    board.D7,
                     board.D8,
+                    board.D9,
                 ),
-                clock=board.D2,
-                vsync=board.D7,
-                href=board.D9,
+                clock=board.PC,
+                vsync=board.VS,
+                href=board.HS,
                 mclk=None,
                 shutdown=None,
                 reset=None,
-                size=adafruit_ov5640.OV5640_SIZE_VGA
+                size=adafruit_ov5640.OV5640_SIZE_QVGA
             )
             self.cam.colorspace = adafruit_ov5640.OV5640_COLOR_JPEG
             self.cam.flip_y = False
@@ -283,7 +283,7 @@ class Satellite:
             self.cam.exposure_value=-2
             self.cam.white_balance=2
             self.cam.night_mode=False
-            self.cam.quality=quality
+            self.cam.quality=20
             self.hardware['Camera'] = True
         except Exception as e:
             self.debug_print('[ERROR][OV5640]' + ''.join(traceback.format_exception(e)))
@@ -296,9 +296,9 @@ class Satellite:
 
     def reinit(self,dev):
         if dev=='pwr':
-            self.pwr.__init__(self.i2c0)
+            self.pwr.__init__(self.i2c1)
         elif dev=='fld':
-            self.faces.__init__(self.i2c0)
+            self.faces.__init__(self.i2c1)
         elif dev=='lidar':
             self.LiDAR.__init__(self.i2c1)
         else:
