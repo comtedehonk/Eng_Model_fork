@@ -103,6 +103,63 @@ def sortThroughDir(dir):
 	return l
 
 async def capture(cubesat, cset):
+    try:
+        with open("image_count.txt", 'r') as f:
+            out = f.read()
+            count = int(out) + 1
+    except:
+        count = 0
+    with open("image_count.txt", 'w') as f:
+        f.write(str(count))
+
+    # Allocate buffer
+    print(mem_free())
+    collect()
+    buf = bytearray(cset["buffer_size"])
+    print(mem_free())
+
+    current_best = -1
+
+    # Capture 10 images
+    for i in range(0, 10):
+        print(f"ok: capturing photo {i} in burst {count}")
+
+        try:
+            cubesat.cam.capture(buf)
+        except Exception as e:
+            print("error:", type(e).__name__, e)
+            continue # attempt to take other photos in the same burst
+        
+        eoi = buf.find(b"\xff\xd9")
+
+        if eoi == -1:
+            print("warn: IMAGE IS PROBABLY TRUNCATED")
+
+            if current_best != -1:
+                # we already have another usable image
+
+                print("warn: discarding current image and continuing")
+                continue
+        else:
+            if eoi < current_best:
+                # we have a better image already
+
+                print(f"ok: discarding current image (size {eoi} < {current_best})")
+                continue
+        
+        print(f"ok: saving photo to current_best.jpg, size {eoi}")
+        current_best = eoi
+
+        with open("current_best.jpg", "wb") as photo_file:
+            photo_file.write(buf[: eoi + 2])
+        
+        print("ok: done saving current_best.jpg")
+    
+    # Sort and select best
+    rename("current_best.jpg", f"images-to-send/image{count}.jpeg")
+
+
+'''async def capture(cubesat, cset):
 	with open("image_count.txt", 'r') as f:
 		try:
 			out = f.read()
@@ -128,7 +185,7 @@ async def capture(cubesat, cset):
 	for i in listdir(folder):
 		remove(f"{folder}/{i}")
 	rmdir(f"{folder}")
-
+'''
 
 
 
