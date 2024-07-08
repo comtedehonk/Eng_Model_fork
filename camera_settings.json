@@ -3,7 +3,7 @@
     "exposure_value": -3,
     "white_balance": 0,
     "size": 5,
-    "buffer_size": 3840,
+    "buffer_size": 10000,
     "brightness": 0,
     "contrast": 1,
     "saturation": 0,
