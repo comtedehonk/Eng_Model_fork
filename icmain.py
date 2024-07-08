@@ -91,10 +91,10 @@ def normal_power_operations():
     #Defining L1 Tasks
     def check_power():
         gc.collect()
-        f.battery_health()
-        f.battery_heater() 
+        #f.battery_health()
+        #f.battery_heater() 
         c.check_reboot()
-        f.battery_health() #Second check to make sure we have enough power to continue
+        #f.battery_health() #Second check to make sure we have enough power to continue
         
         if c.power_mode == 'normal' or c.power_mode == 'maximum': 
             pwr = True
@@ -107,7 +107,7 @@ def normal_power_operations():
 
         debug_print(c.power_mode)
         gc.collect()
-        return pwr #True 
+        return True #pwr  
  
 
     '''async def s_lora_beacon():
