@@ -67,8 +67,9 @@ def captureSingle(cam, buf, folder, name):
 	# print("ok: eoi marker (possibly inaccurate):", eoi)
 	if eoi == -1:
 		print("warn: IMAGE IS PROBABLY TRUNCATED")
-	print(memoryview(buf).hex())
+	#print(memoryview(buf).hex())
 	#print(memoryview(buf)[: eoi + 2].hex())
+	print(f'captured {name} in {folder}')
 	try:
 		mkdir("images")
 	except:
@@ -81,8 +82,7 @@ def captureSingle(cam, buf, folder, name):
 	with open(f"images/{folder}/{name}.jpeg", "wb") as photo_file:
 		photo_file.write(buf[: eoi + 2])
 		
-	print("ok: done saving,")
-	buf = bytearray(cam.buffer_size)
+	print(f"ok: done saving images/{folder}/{name}.jpeg")
 	
 
 def sortThroughDir(dir):
@@ -103,7 +103,7 @@ def sortThroughDir(dir):
 	return l
 
 async def capture(cubesat, cset):
-	'''with open("image_count.txt", 'r') as f:
+	with open("image_count.txt", 'r') as f:
 		try:
 			out = f.read()
 			print(out)
@@ -111,14 +111,12 @@ async def capture(cubesat, cset):
 		except:
 			count = 0
 	with open("image_count.txt", 'w') as f:
-		f.write(str(count))'''
+		f.write(str(count))
   
 	print(mem_free())
 	collect()
 	buf = bytearray(cset["buffer_size"])
 	print(mem_free())
-	count = 3
-
 	for i in range(0, 10):
 		captureSingle(cubesat.cam, buf, f"burst{count}",  f"image{i}")
 	folder = f"images/burst{count}"
