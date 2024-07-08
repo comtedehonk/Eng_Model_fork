@@ -9,13 +9,13 @@ from traceback import format_exception
 # import time
 from os import listdir, remove, stat, mkdir, getcwd, rmdir, rename
 from asyncio import sleep
-from json import dumps
+from json import dumps, loads
 from gc import mem_free, collect
 
 from radio_diagnostics import report_diagnostics
 from icpacket import Packet
 
-import camera_settings as cset
+#import camera_settings as cset
 
 
 
@@ -30,68 +30,77 @@ def verify_packet(packet, desired_type):
 		return False
 
 async def save_settings(new_settings, camera_settings, cubesat):
-	# old_keys = camera_settings.keys()
-	# old_keys.sort()
-	# new_keys = new_settings.keys()
-	# new_keys.sort()
-	if set(new_settings) == set(camera_settings): # same keys
-		camera_settings = new_settings
-		with open("camera_settings.py", 'w') as new_settings:
-			new_settings.write(f'camera_settings = {dumps(new_settings)}')
-		for k in camera_settings:
-   			setattr(cubesat.cam, k, camera_settings[k])
-	else:
-		print("received dictionary was corrupted")
+	try:
+		if set(new_settings) == set(camera_settings): # same keys
+			print(new_settings)
+			print(dumps(new_settings))
+			with open("camera_settings.json", 'w') as file:
+				file.write(dumps(new_settings))
+			for k in new_settings:
+				setattr(cubesat.cam, k, new_settings[k])
+			print('new camera settings have been updated')
+			return new_settings
+		else:
+			print("received dictionary was corrupted")
+			return camera_settings
+	except Exception as e:
+		print(e)
+		print('new camera settings did not save')
+		return camera_settings
+		
 
+async def load_settings():
+	with open('camera_settings.json', 'r') as f:
+		return loads(f.read())
 
 def captureSingle(cam, buf, folder, name):
-    print("ok: capturing test photo")
-    try:
-        cam.capture(buf)
-    except Exception as e:
-        print("error:", e)
-        return
-    print(f"ok: saving test photo to images/{folder}/{name}.jpeg")
-    eoi = buf.find(
-        b"\xff\xd9"
-    )  # this can false positive, parse the jpeg for better results
-    # print("ok: eoi marker (possibly inaccurate):", eoi)
-    if eoi == -1:
-        print("warn: IMAGE IS PROBABLY TRUNCATED")
-    print(memoryview(buf).hex())
-    #print(memoryview(buf)[: eoi + 2].hex())
-    try:
-        mkdir("images")
-    except:
-        print("Image Folder Exists")
-    try:
-        mkdir(f"images/{folder}")
-    except:
-        print(f"Folder {folder} Exists")
-    # print(buf)
-    with open(f"images/{folder}/{name}.jpeg", "wb") as photo_file:
-        photo_file.write(buf[: eoi + 2])
-        
-    print("ok: done saving,")
-    buf = bytearray(cam.buffer_size)
-    
+	print("ok: capturing test photo")
+	try:
+		cam.capture(buf)
+	except Exception as e:
+		print("error:", e)
+		return
+	print(f"ok: saving test photo to images/{folder}/{name}.jpeg")
+	eoi = buf.find(
+		b"\xff\xd9"
+	)  # this can false positive, parse the jpeg for better results
+	# print("ok: eoi marker (possibly inaccurate):", eoi)
+	if eoi == -1:
+		print("warn: IMAGE IS PROBABLY TRUNCATED")
+	print(memoryview(buf).hex())
+	#print(memoryview(buf)[: eoi + 2].hex())
+	try:
+		mkdir("images")
+	except:
+		print("Image Folder Exists")
+	try:
+		mkdir(f"images/{folder}")
+	except:
+		print(f"Folder {folder} Exists")
+	# print(buf)
+	with open(f"images/{folder}/{name}.jpeg", "wb") as photo_file:
+		photo_file.write(buf[: eoi + 2])
+		
+	print("ok: done saving,")
+	buf = bytearray(cam.buffer_size)
+	
 
 def sortThroughDir(dir):
-    # Maps through dir to return sorted list of touples of name and file size
-    l = sorted(
-        list(
-            map(
-                lambda f: (
-                    f,
-                    stat(getcwd() + "/" + dir + "/" + f)[6],
-                ),
-                listdir(dir),
-            )
-        ),
-        key=lambda x: x[1]
-    )
-    l.reverse()
-    return l
+	# Maps through dir to return sorted list of touples of name and file size
+	l = sorted(
+		list(
+			map(
+				lambda f: (
+					f,
+					stat(getcwd() + "/" + dir + "/" + f)[6],
+				),
+				listdir(dir),
+			)
+		),
+		key=lambda x: x[1]
+	)
+	l.reverse()
+	return l
 
 async def capture(cubesat, cset):
 	'''with open("image_count.txt", 'r') as f:
@@ -122,6 +131,9 @@ async def capture(cubesat, cset):
 		remove(f"{folder}/{i}")
 	rmdir(f"{folder}")
 
+
+
+
 async def send(cubesat, functions):
 	print("Irvington CubeSat's Test Satellite Board")
 	
@@ -138,9 +150,9 @@ async def send(cubesat, functions):
 	IMAGE_DIRECTORY = "images-to-send" # Change when the camera code is done
 	IMAGE_COUNT_FILE = "image_count.txt" # Placeholder
 	
-	camera_settings = cset.camera_settings
 
 	report_diagnostics(cubesat.radio1)
+	camera_settings = await load_settings()
 	
 	while True:
 		try:
@@ -164,7 +176,7 @@ async def send(cubesat, functions):
 			
 			# writing new camera settings
 			if (packet.payload[1] is not None) and isinstance(packet.payload[1], dict):
-				await save_settings(packet.payload[1], camera_settings, cubesat)
+				camera_settings = await save_settings(packet.payload[1], camera_settings, cubesat)
 			
 			# setting new timeout
 			if packet.payload[2] is not None:

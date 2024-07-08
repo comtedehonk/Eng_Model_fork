@@ -1,4 +1,4 @@
-camera_settings = {
+{
     "effect": 0,
     "exposure_value": -3,
     "white_balance": 0,
@@ -8,9 +8,9 @@ camera_settings = {
     "contrast": 1,
     "saturation": 0,
     "sharpness": 0,
-    "flip_x": False,
-    "flip_y":False,
-    "test_pattern": False,
-    "night_mode": False,
+    "flip_x": false,
+    "flip_y":false,
+    "test_pattern": false,
+    "night_mode": false,
     "MAX_FILESIZE": 120000
 }
