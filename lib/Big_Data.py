@@ -11,7 +11,6 @@ import board
 import busio
 import traceback
 import adafruit_mcp9808     #temperature sensor
-import adafruit_tca9548a    #I2C multiplexer
 import adafruit_veml7700    #light sensor
 import adafruit_drv2605     #Coil motor driver
 

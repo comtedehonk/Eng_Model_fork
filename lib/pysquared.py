@@ -17,22 +17,23 @@ import board, microcontroller
 import busio, time, traceback
 import digitalio
 from debugcolor import co
+import neopixel
 import gc
+gc.enable()
+gc.collect()
+gc.threshold((gc.mem_alloc() + gc.mem_free()) // 4)
 from ptp import AsyncPacketTransferProtocol as APTP
 from ftp import FileTransferProtocol as FTP
 
 
 
-gc.enable()
 
 # Hardware Specific Libs
 import pysquared_rfm9x  # Radio
 import neopixel         # RGB LED
 import adafruit_tca9548a # I2C Multiplexer
-import adafruit_pct2075 # Temperature Sensor
-import adafruit_vl6180x # LiDAR Distance Sensor for Antenna
 import adafruit_lsm303_accel
-import adafruit_lis2mdl
+#import adafruit_lis2mdl
 from adafruit_lsm6ds import lsm6dsox
 import adafruit_ov5640
 
@@ -101,6 +102,7 @@ class Satellite:
         self.image_packets=0
         self.urate = 115200
         self.vlowbatt=6.0
+        #self.buf = bytearray(3840)
         #self.send_buff = memoryview(SEND_BUFF)
         self.micro=microcontroller
         self.radio_cfg = {
@@ -164,7 +166,7 @@ class Satellite:
         _rf_rst1.switch_to_output(value=True)
         self.radio1_DIO0.switch_to_input()
         self.radio1_DIO4.switch_to_input()
-
+        
         # Initialize CAN Transceiver
         try:
             self.spi0cs2 = digitalio.DigitalInOut(board.SPI0_CS2)
@@ -177,7 +179,7 @@ class Satellite:
 
         # Initialize Neopixel
         try:
-            self.neopixel = neopixel.NeoPixel(board.NEOPIXEL, 1, brightness=0.2, pixel_order=neopixel.GRB)
+            self.neopixel = neopixel.NeoPixel(board.NEOPIX, 1, brightness=0.2, pixel_order=neopixel.GRB)
             self.neopixel[0] = (0,0,255)
             self.hardware['Neopixel'] = True
         except Exception as e:
@@ -190,22 +192,10 @@ class Satellite:
         except Exception as e:
             self.debug_print('[ERROR][ACCEL]' + ''.join(traceback.format_exception(e)))
         try:
-            self.mag = adafruit_lis2mdl.LIS2MDL(self.i2c1)
-            self.hardware['MAG'] = True
-        except Exception as e:
-            self.debug_print('[ERROR][MAG]' + ''.join(traceback.format_exception(e)))
-        try:
             self.gyro = lsm6dsox.LSM6DSOX(self.i2c1,address=0x6b)
             self.hardware['GYRO'] = True
         except Exception as e:
             self.debug_print('[ERROR][GYRO]' + ''.join(traceback.format_exception(e)))
-
-        # Initialize PCT2075 Temperature Sensor
-        try:
-            self.pct = adafruit_pct2075.PCT2075(self.i2c1, address=0x4F)
-            self.hardware['TEMP'] = True
-        except Exception as e:
-            self.debug_print('[ERROR][TEMP SENSOR]' + ''.join(traceback.format_exception(e)))
 
         # Initialize TCA
         try:
@@ -216,16 +206,10 @@ class Satellite:
                     addresses = self.tca[channel].scan()
                     print([hex(address) for address in addresses if address != 0x70])
                     self.tca[channel].unlock()
+            #self.big_data = Big_Data.AllFaces(self.debug,self.tca)
         except Exception as e:
             self.debug_print("[ERROR][TCA]" + ''.join(traceback.format_exception(e)))
-
-        # Initialize LiDAR
-        '''try:
-            self.LiDAR = adafruit_vl6180x.VL6180X(self.i2c1,offset=0)
-            self.hardware['LiDAR'] = True
-        except Exception as e:
-            self.debug_print('[ERROR][LiDAR]' + ''.join(traceback.format_exception(e)))
-            '''
+        
         # Initialize radio #1 - UHF
         try:
             self.radio1 = pysquared_rfm9x.RFM9x(self.spi0, _rf_cs1, _rf_rst1,self.radio_cfg['freq'],code_rate=8,baudrate=1320000)
@@ -290,6 +274,7 @@ class Satellite:
 
         # Prints init state of PySquared hardware
         self.debug_print(str(self.hardware))
+        print(gc.mem_free())
 
         # set PyCubed power mode
         self.power_mode = 'normal'
@@ -387,3 +372,4 @@ class Satellite:
 
 print("Initializing CubeSat")
 cubesat = Satellite()
+

@@ -103,20 +103,24 @@ def sortThroughDir(dir):
 	return l
 
 async def capture(cubesat, cset):
-    try:
+    
+    '''try:
         with open("image_count.txt", 'r') as f:
             out = f.read()
             count = int(out) + 1
     except:
         count = 0
+    
     with open("image_count.txt", 'w') as f:
-        f.write(str(count))
+        f.write(str(count))'''
 
     # Allocate buffer
+    
     print(mem_free())
     collect()
     buf = bytearray(cset["buffer_size"])
     print(mem_free())
+    count =0
 
     current_best = -1
 
@@ -129,6 +133,7 @@ async def capture(cubesat, cset):
         except Exception as e:
             print("error:", type(e).__name__, e)
             continue # attempt to take other photos in the same burst
+        
         
         eoi = buf.find(b"\xff\xd9")
 
@@ -154,9 +159,11 @@ async def capture(cubesat, cset):
             photo_file.write(buf[: eoi + 2])
         
         print("ok: done saving current_best.jpg")
-    
+    del buf
+    collect()
     # Sort and select best
     rename("current_best.jpg", f"images-to-send/image{count}.jpeg")
+    
 
 
 '''async def capture(cubesat, cset):
