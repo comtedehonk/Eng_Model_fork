@@ -249,6 +249,12 @@ async def send(cubesat, functions):
 				image_path = await capture(cubesat,camera_settings)
 			
 			# create 2 more for file name and then file data
+			if packet.payload[4]:
+				file_name = packet.payload[4]
+
+			if packet.payload[5]:
+				file_data = packet.payload[5]
+				
 				
 			
 			# Get number of images taken
