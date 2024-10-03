@@ -249,12 +249,14 @@ async def send(cubesat, functions):
 				image_path = await capture(cubesat,camera_settings)
 			
 			# create 2 more for file name and then file data
-			if packet.payload[4] and packet.payload[5]: 
+			if len(packet.payload) > 5 and packet.payload[4] and packet.payload[5]: 
 				file_name = packet.payload[4]
 				file_data = packet.payload[5]
-				with open(file_name, 'w+') as f:
-					f.write(file_data)
-				
+				try: 
+					with open(file_name, 'w+') as f:
+						f.write(file_data)	
+				except Exception as e:
+					print (f"Something went wrong when writing to the file: {e}")
 				
 			
 			# Get number of images taken
